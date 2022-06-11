@@ -9,18 +9,18 @@
 # @setting-header General Settings
 # @setting CONFIG_FILE string[$CONFIGS_DIR/setup.conf] Location of setup.conf to be used by set_option and all subsequent scripts. 
 CONFIG_FILE=$CONFIGS_DIR/setup.conf
-if [ ! -f $CONFIG_FILE ]; then # check if file exists
-    touch -f $CONFIG_FILE # create file if not exists
+if [ ! -f "$CONFIG_FILE" ]; then # check if file exists
+    touch -f "$CONFIG_FILE" # create file if not exists
 fi
 
 # @description set options in setup.conf
 # @arg $1 string Configuration variable.
 # @arg $2 string Configuration value.
 set_option() {
-    if grep -Eq "^${1}.*" $CONFIG_FILE; then # check if option exists
-        sed -i -e "/^${1}.*/d" $CONFIG_FILE # delete option if exists
+    if grep -Eq "^${1}.*" "$CONFIG_FILE"; then # check if option exists
+        sed -i -e "/^${1}.*/d" "$CONFIG_FILE" # delete option if exists
     fi
-    echo "${1}=${2}" >>$CONFIG_FILE # add option
+    echo "${1}=${2}" >>"$CONFIG_FILE" # add option
 }
 # @description Renders a text based list of options that can be selected by the
 # user using up, down and enter keys and returns the chosen option.
@@ -90,8 +90,8 @@ select_option() {
 
     # determine current screen position for overwriting the options
     local return_value=$1
-    local lastrow=`get_cursor_row`
-    local lastcol=`get_cursor_col`
+    local lastrow=$(get_cursor_row)
+    local lastcol=$(get_cursor_col)
     local startrow=$(($lastrow - $#))
     local startcol=1
     local lines=$( tput lines )
@@ -111,21 +111,21 @@ select_option() {
     while true; do
         print_options_multicol $active_col $active_row 
         # user key control
-        case `key_input` in
+        case $(key_input) in
             enter)  break;;
             up)     ((active_row--));
                     if [ $active_row -lt 0 ]; then active_row=0; fi;;
             down)   ((active_row++));
-                    if [ $active_row -ge $(( ${#options[@]} / $colmax ))  ]; then active_row=$(( ${#options[@]} / $colmax )); fi;;
+                    if [ "$active_row" -ge $(( ${#options[@]} / $colmax ))  ]; then active_row=$(( ${#options[@]} / $colmax )); fi;;
             left)     ((active_col=$active_col - 1));
                     if [ $active_col -lt 0 ]; then active_col=0; fi;;
             right)     ((active_col=$active_col + 1));
-                    if [ $active_col -ge $colmax ]; then active_col=$(( $colmax - 1 )) ; fi;;
+                    if [ $active_col -ge "$colmax" ]; then active_col=$(( $colmax - 1 )) ; fi;;
         esac
     done
 
     # cursor position back to normal
-    cursor_to $lastrow
+    cursor_to "$lastrow"
     printf "\n"
     cursor_blink_on
 
@@ -169,7 +169,7 @@ while true; do
   read -s luks_password2 # read password without echo
 
   if [ "$luks_password" = "$luks_password2" ]; then
-    set_option LUKS_PASSWORD $luks_password
+    set_option LUKS_PASSWORD "$luks_password"
     set_option FS luks
     break
   else
@@ -195,12 +195,12 @@ select_option $? 1 "${options[@]}"
 case ${options[$?]} in
     y|Y|yes|Yes|YES)
     echo "${time_zone} set as timezone"
-    set_option TIMEZONE $time_zone;;
+    set_option TIMEZONE "$time_zone";;
     n|N|no|NO|No)
     echo "Please enter your desired timezone e.g. Europe/London :" 
     read new_timezone
     echo "${new_timezone} set as timezone"
-    set_option TIMEZONE $new_timezone;;
+    set_option TIMEZONE "$new_timezone";;
     *) echo "Wrong option. Try again";timezone;;
 esac
 }
@@ -215,7 +215,7 @@ select_option $? 4 "${options[@]}"
 keymap=${options[$?]}
 
 echo -ne "Your key boards layout: ${keymap} \n"
-set_option KEYMAP $keymap
+set_option KEYMAP "$keymap"
 }
 
 # @description Choose whether drive is SSD or not.
@@ -255,7 +255,7 @@ select_option $? 1 "${options[@]}"
 disk=${options[$?]%|*}
 
 echo -e "\n${disk%|*} selected \n"
-    set_option DISK ${disk%|*}
+    set_option DISK "${disk%|*}"
 
 drivessd
 }
@@ -272,14 +272,14 @@ while true; do
   read -s password2 # read password without echo
 
   if [ "$password" = "$password2" ]; then
-    set_option PASSWORD $password
+    set_option PASSWORD "$password"
     break
   else
     echo -e "\nPasswords do not match. Please try again. \n"
   fi
 done
 read -rep "Please enter your hostname: " nameofmachine
-set_option NAME_OF_MACHINE $nameofmachine
+set_option NAME_OF_MACHINE "$nameofmachine"
 }
 
 # @description Choose AUR helper. 
@@ -289,7 +289,7 @@ aurhelper () {
   options=(paru yay picaur aura trizen pacaur none)
   select_option $? 4 "${options[@]}"
   aur_helper=${options[$?]}
-  set_option AUR_HELPER $aur_helper
+  set_option AUR_HELPER "$aur_helper"
 }
 
 # @description Choose Desktop Environment
@@ -299,7 +299,7 @@ desktopenv () {
   options=(gnome kde cinnamon xfce mate budgie lxde deepin openbox server)
   select_option $? 4 "${options[@]}"
   desktop_env=${options[$?]}
-  set_option DESKTOP_ENV $desktop_env
+  set_option DESKTOP_ENV "$desktop_env"
 }
 
 # @description Choose whether to do full or minimal installation. 
@@ -310,7 +310,7 @@ installtype () {
   options=(FULL MINIMAL)
   select_option $? 4 "${options[@]}"
   install_type=${options[$?]}
-  set_option INSTALL_TYPE $install_type
+  set_option INSTALL_TYPE "$install_type"
 }
 
 # More features in future
